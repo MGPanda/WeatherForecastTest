@@ -1,6 +1,8 @@
 package training.weather;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -36,6 +38,29 @@ public class WeatherForecastTest {
     public void noTimeTest() {
         WeatherForecast weatherForecast = new WeatherForecast();
         String forecast = weatherForecast.getCityWeather("Madrid", null);
+        System.out.println(forecast);
+    }
+
+    /**
+     * Existing city, date older than expected.
+     */
+    @Test
+    public void oldDateTest() throws ParseException {
+        String dateString = "16/09/1996";
+        Date date = new SimpleDateFormat("dd/MM/yyyy").parse(dateString);
+
+        WeatherForecast weatherForecast = new WeatherForecast();
+        String forecast = weatherForecast.getCityWeather("Madrid", date);
+        System.out.println(forecast);
+    }
+
+    /**
+     * Using the current date, we try if the API's ability to give country data would affect in any way.
+     */
+    @Test
+    public void countryTest() {
+        WeatherForecast weatherForecast = new WeatherForecast();
+        String forecast = weatherForecast.getCityWeather("Spain", new Date());
         System.out.println(forecast);
     }
 }

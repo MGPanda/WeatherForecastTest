@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * The WeatherService class is dedicated entirely to the interaction with the API and the network in general.
+ */
 public class WeatherService {
     /**
      * Since this part of the URL will be constant, we'll just use it as a common variable.
@@ -57,6 +60,14 @@ public class WeatherService {
 
     }
 
+    /**
+     * This method receives a woeId and a dateTime and will use them to look for a specific weather report.
+     * If the date passed by the user is null, we'll just use the current one.
+     * @param woeId The woeId of the city we're looking for.
+     * @param dateTime The date and time of the report we're looking for.
+     * @return The method returns the first report that fits the terms we're looking for.
+     * @throws IOException The makeRequest method might throw an exception if there's a network error.
+     */
     public JSONObject getReportWithWoeId(String woeId, Date dateTime) throws IOException {
         if (dateTime == null) {
             dateTime = new Date();
@@ -70,6 +81,11 @@ public class WeatherService {
 
         JSONArray fullForecast = new JSONArray(makeRequest(requestUrl));
 
-        return fullForecast.getJSONObject(0);
+        if (fullForecast.length() == 0) {
+            return null;
+        } else {
+            return fullForecast.getJSONObject(0);
+        }
+
     }
 }

@@ -5,6 +5,9 @@ import java.util.Date;
 
 import org.json.JSONObject;
 
+/**
+ * The WeatherForecast class is the one that the user will directly interact with.
+ */
 public class WeatherForecast {
 
     /**
