@@ -20,12 +20,22 @@ public class WeatherForecastTest {
     }
 
     /**
-     * Current time but a non-existing city.
+     * Current time but a non-existing city (this and passing a null city will give us the same result).
      */
     @Test
     public void wrongCityTest() {
         WeatherForecast weatherForecast = new WeatherForecast();
         String forecast = weatherForecast.getCityWeather("Uxlyzn", new Date());
+        System.out.println(forecast);
+    }
+
+    /**
+     * Existing city, null time.
+     */
+    @Test
+    public void noTimeTest() {
+        WeatherForecast weatherForecast = new WeatherForecast();
+        String forecast = weatherForecast.getCityWeather("Madrid", null);
         System.out.println(forecast);
     }
 }
