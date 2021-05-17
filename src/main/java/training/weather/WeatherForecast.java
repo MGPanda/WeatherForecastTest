@@ -7,7 +7,7 @@ import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.json.JSONArray;
@@ -20,33 +20,86 @@ public class WeatherForecast {
      */
     private final String METAWEATHER_URL = "https://www.metaweather.com/api/location";
 
-    public String getCityWeather(String city, Date dateTime) {
+    /**
+     * This method will make a full request to the API; it will create the HttpRequest via a RequestFactory,
+     * execute it, treat it properly and return it as a (more easily understandable) parsed String.
+     *
+     * @param requestUrl The url that we're going to access.
+     * @return The response, parsed as a String.
+     * @throws IOException The exception should only ever happen if there's a network error.
+     */
+    private String makeRequest(String requestUrl) throws IOException {
         HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
+        HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(requestUrl));
 
-        /*
-        We make the request and look for the city. Since the API returns an array, empty or otherwise,
-        independently of the city we're looking for, we're gonna create an empty JSONArray beforehand
-        and initialize it as we go along. The Exception should only happen if there's a connection error,
-        not because of the code.
-         */
-        JSONArray weatherJsonArray = new JSONArray();
+        HttpResponse response = request.execute();
+        return response.parseAsString();
+    }
+
+    /**
+     * We make the request and look for the city. For simplicity's sake, we're returning just the first
+     * result.
+     *
+     * @param city The city we're gonna be looking for, passed as an argument.
+     * @return We return the woeId of the city as a String. If we don't find anything, we'll just return
+     * null and inform the user.
+     * @throws IOException The makeRequest method might throw an exception if there's a network error.
+     */
+    private String searchCityWoeIdByName(String city) throws IOException {
+        String requestUrl = METAWEATHER_URL + "/search/?query=" + city;
+
+        JSONArray searchResults = new JSONArray(makeRequest(requestUrl));
+
+        if (searchResults.length() == 0) {
+            return null;
+        } else {
+            JSONObject cityData = searchResults.getJSONObject(0);
+            return cityData.get("woeid").toString();
+        }
+
+    }
+
+    private JSONObject getReportWithWoeId(String woeId, Date dateTime) throws IOException {
+        if (dateTime == null) {
+            dateTime = new Date();
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(dateTime);
+
+        String requestUrl = METAWEATHER_URL + "/" + woeId + "/" + calendar.get(Calendar.YEAR) + "/"
+                + calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.DAY_OF_MONTH);
+
+        JSONArray fullForecast = new JSONArray(makeRequest(requestUrl));
+
+        return fullForecast.getJSONObject(0);
+    }
+
+    private String printReport(JSONObject weatherReport) {
+        return "";
+    }
+
+    public String getCityWeather(String city, Date dateTime) {
         try {
-            String requestUrl = METAWEATHER_URL + "/search/?query=" + city;
-            HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(requestUrl));
+            String cityId = searchCityWoeIdByName(city);
+            JSONObject weatherReport;
 
-            HttpResponse response = request.execute();
-            String stringifiedResponse = response.parseAsString();
-            weatherJsonArray = new JSONArray(stringifiedResponse);
+            if (cityId == null) {
+                return "The city you're looking for does not exist. Perhaps it's written incorrectly?";
+            } else {
+                weatherReport = getReportWithWoeId(cityId, dateTime);
+            }
+
+            if (weatherReport == null) {
+                return "The city you're looking for does not exist. Perhaps it's written incorrectly?";
+            } else {
+                return printReport(weatherReport);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
             return "Connection error. Please try again later.";
         }
-
-        if (weatherJsonArray.length() == 0) {
-            return "The city you're looking for does not exist. Perhaps it's written incorrectly?";
-        }
-        return null;
     }
 
 //	public String getCityWeather(String city, Date datetime) throws IOException {
